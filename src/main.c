@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "beacon.c"
+
 #define NULL 0x00
 
 void monitor(char *dev){    //랜카드 모니터 모드 설정
