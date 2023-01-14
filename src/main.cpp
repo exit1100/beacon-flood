@@ -21,6 +21,10 @@ void usage(){
     printf("sample: beacon-flood wlan0 ssid-list.txt\n");
 }
 
+void sort_sMAC(){
+
+}
+
 void set_sMAC(struct beacon_frame * fake_bframe){
     if(fake_bframe->beacon.shost[5] == 0xff){
         fake_bframe->beacon.shost[5] = 0x00;
@@ -96,9 +100,8 @@ int main(int argc, char* argv[]) {
             exit (-1);
         }
 
-        printf(" [BSSID]: %02x:%02x:%02x:%02x:%02x:%02x | [SSID]: %s | send packet!\n",fake_bframe.beacon.bssid[0],fake_bframe.beacon.bssid[1],fake_bframe.beacon.bssid[2]
-                                                                                      ,fake_bframe.beacon.bssid[3],fake_bframe.beacon.bssid[4],fake_bframe.beacon.bssid[5]
-                                                                                      ,fake_bframe.tag_ssid.ssid);
+        printf(" [BSSID]: %s | [SSID]: %s | send packet!\n",byte2str_MAC(&fake_bframe.beacon.bssid), fake_bframe.tag_ssid.ssid);
+
         usleep(100);
     }
     fclose(pFile);
