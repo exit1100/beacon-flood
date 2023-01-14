@@ -21,6 +21,15 @@ void usage(){
     printf("sample: beacon-flood wlan0 ssid-list.txt\n");
 }
 
+int set_ssidNmae(FILE* pFile, char *ssidName){
+    memset(ssidName,0x00,32);
+    if(!feof(pFile)) fgets(ssidName, sizeof(ssidName),pFile);
+    else fseek(pFile,0,SEEK_SET);
+    if (ssidName[0]==0x00) return -1; //ssid가 비어있으면 continue
+    ssidName[strlen(ssidName)-1] = 0x00;
+    return 0;
+}
+
 int main(int argc, char* argv[]) {
     if (argc != 3) {
         usage();
@@ -30,6 +39,7 @@ int main(int argc, char* argv[]) {
     char * dev = argv[1];
     char * ssidFile = argv[2];
     char errbuf[PCAP_ERRBUF_SIZE];
+    char ssidName[32] = {0,};
 
     if(strlen(dev)>30){ // 버퍼 오버플로우 방지
         printf("interface name length less than 30 characters");
@@ -75,14 +85,9 @@ int main(int argc, char* argv[]) {
         fake_bframe.beacon.shost[5]++;
         memcpy(fake_bframe.beacon.bssid, fake_bframe.beacon.shost, 6);
 
-        //ssid name list
-        char strTemp[32];
-        memset(strTemp,0x00,32);
-        if(!feof(pFile)) fgets(strTemp, sizeof(strTemp),pFile);
-        else fseek(pFile,0,SEEK_SET);
-        if (strTemp[0]==0x00) continue; //ssid가 비어있으면 continue
-        strTemp[strlen(strTemp)-1] = 0x00;
-        memcpy(fake_bframe.tag_ssid.ssid, strTemp, 32);
+
+        if (set_ssidNmae(pFile, ssidName) == -1) continue; 
+        memcpy(fake_bframe.tag_ssid.ssid, ssidName, 32);
 
         if (pcap_sendpacket(pcap, (unsigned char*)&fake_bframe, sizeof(fake_bframe)) != 0){
             printf("Fail sendpacket\n");
