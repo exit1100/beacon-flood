@@ -21,7 +21,29 @@ void usage(){
     printf("sample: beacon-flood wlan0 ssid-list.txt\n");
 }
 
-
+void change_MAC(struct beacon_frame* fake_bframe){
+    //change MAC
+    if(fake_bframe.beacon.shost[5] == 0xff){
+        fake_bframe.beacon.shost[5] = 0x00;
+        fake_bframe.beacon.shost[4]++;
+        if(fake_bframe.beacon.shost[4]==0xff){
+            fake_bframe.beacon.shost[4] = 0x00;
+            fake_bframe.beacon.shost[3]++;
+            if(fake_bframe.beacon.shost[3]==0xff){
+                fake_bframe.beacon.shost[3] = 0x00;
+                fake_bframe.beacon.shost[2]++;
+                if(fake_bframe.beacon.shost[2]==0xff){
+                    fake_bframe.beacon.shost[2] = 0x00;
+                    fake_bframe.beacon.shost[1]++;
+                    if(fake_bframe.beacon.shost[1]==0xff){
+                        fake_bframe.beacon.shost[1] = 0x00;
+                        fake_bframe.beacon.shost[0]++;
+                    }
+                }
+            }
+        }
+    }
+}
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -54,37 +76,18 @@ int main(int argc, char* argv[]) {
     struct beacon_frame fake_bframe;
 
     while (1) {
-        //change MAC
-        if(fake_bframe.beacon.shost[5] == 0xff){
-            fake_bframe.beacon.shost[5] = 0x00;
-            fake_bframe.beacon.shost[4]++;
-            if(fake_bframe.beacon.shost[4]==0xff){
-                fake_bframe.beacon.shost[4] = 0x00;
-                fake_bframe.beacon.shost[3]++;
-                if(fake_bframe.beacon.shost[3]==0xff){
-                    fake_bframe.beacon.shost[3] = 0x00;
-                    fake_bframe.beacon.shost[2]++;
-                    if(fake_bframe.beacon.shost[2]==0xff){
-                        fake_bframe.beacon.shost[2] = 0x00;
-                        fake_bframe.beacon.shost[1]++;
-                        if(fake_bframe.beacon.shost[1]==0xff){
-                            fake_bframe.beacon.shost[1] = 0x00;
-                        }
-                    }
-                }
-            }
-        }
+        change_MAC();
         fake_bframe.beacon.shost[5]++;
         memcpy(fake_bframe.beacon.bssid, fake_bframe.beacon.shost, 6);
 
         //ssid name list
-        char strTemp[32];
-        memset(strTemp,0x00,32);
-        if(!feof(pFile)) fgets(strTemp, sizeof(strTemp),pFile);
+        char ssidName[32];
+        memset(ssidName,0x00,32);
+        if(!feof(pFile)) fgets(ssidName, sizeof(ssidName),pFile);
         else fseek(pFile,0,SEEK_SET);
-        if (strTemp[0]==0x00) continue; //ssid가 비어있으면 continue
-        strTemp[strlen(strTemp)-1] = 0x00;
-        memcpy(fake_bframe.tag_ssid.ssid, strTemp, 32);
+        if (ssidName[0]==0x00) continue; //ssid가 비어있으면 continue
+        ssidName[strlen(ssidName)-1] = 0x00;
+        memcpy(fake_bframe.tag_ssid.ssid, ssidName, 32);
 
         if (pcap_sendpacket(pcap, (unsigned char*)&fake_bframe, sizeof(fake_bframe)) != 0){
             printf("Fail sendpacket\n");
