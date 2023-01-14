@@ -21,7 +21,7 @@ void usage(){
     printf("sample: beacon-flood wlan0 ssid-list.txt\n");
 }
 
-void change_MAC(struct beacon_frame * fake_bframe){
+void set_sMAC(struct beacon_frame * fake_bframe){
     if(fake_bframe->beacon.shost[5] == 0xff){
         fake_bframe->beacon.shost[5] = 0x00;
         fake_bframe->beacon.shost[4]++;
@@ -42,7 +42,10 @@ void change_MAC(struct beacon_frame * fake_bframe){
             }
         }
     }
+    fake_bframe.beacon.shost[5]++;
+    memcpy(fake_bframe.beacon.bssid, fake_bframe.beacon.shost, 6);
 }
+
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -75,9 +78,7 @@ int main(int argc, char* argv[]) {
     struct beacon_frame fake_bframe;
 
     while (1) {
-        change_MAC(&fake_bframe);
-        fake_bframe.beacon.shost[5]++;
-        memcpy(fake_bframe.beacon.bssid, fake_bframe.beacon.shost, 6);
+        set_sMAC(&fake_bframe);
 
         //ssid name list
         char ssidName[32];
