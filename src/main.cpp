@@ -42,8 +42,19 @@ void set_sMAC(struct beacon_frame * fake_bframe){
             }
         }
     }
-    fake_bframe.beacon.shost[5]++;
-    memcpy(fake_bframe.beacon.bssid, fake_bframe.beacon.shost, 6);
+    fake_bframe->beacon.shost[5]++;
+    memcpy(fake_bframe->beacon.bssid, fake_bframe->beacon.shost, 6);
+}
+
+int set_ssidName(FILE* pFile, struct beacon_frame * fake_bframe){
+    char ssidName[32];
+    memset(ssidName,0x00,32);
+    if(!feof(pFile)) fgets(ssidName, sizeof(ssidName),pFile);
+    else fseek(pFile,0,SEEK_SET);
+    if (ssidName[0]==0x00) return -1; //ssid가 비어있으면 continue
+    ssidName[strlen(ssidName)-1] = 0x00;
+    memcpy(fake_bframe->tag_ssid.ssid, ssidName, 32);
+    return 0;
 }
 
 
@@ -76,18 +87,9 @@ int main(int argc, char* argv[]) {
     }
 
     struct beacon_frame fake_bframe;
-
     while (1) {
         set_sMAC(&fake_bframe);
-
-        //ssid name list
-        char ssidName[32];
-        memset(ssidName,0x00,32);
-        if(!feof(pFile)) fgets(ssidName, sizeof(ssidName),pFile);
-        else fseek(pFile,0,SEEK_SET);
-        if (ssidName[0]==0x00) continue; //ssid가 비어있으면 continue
-        ssidName[strlen(ssidName)-1] = 0x00;
-        memcpy(fake_bframe.tag_ssid.ssid, ssidName, 32);
+        if (set_ssidName(pFile, &fake_bframe) == -1) continue;
 
         if (pcap_sendpacket(pcap, (unsigned char*)&fake_bframe, sizeof(fake_bframe)) != 0){
             printf("Fail sendpacket\n");
