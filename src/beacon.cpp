@@ -3,11 +3,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-struct MAC_address {
-    uint8_t byteMAC[6] = {0x0,};
-    uint8_t strMAC[18] = {0x0,};
-}
-
 struct radiotap_header {
     uint8_t     version = 0x00;     /* set to 0 */
     uint8_t     pad = 0x00;
@@ -63,11 +58,5 @@ struct beacon_frame{
     struct tag_support_parameter tag_sup;
     struct tag_DS_parameter tag_ds;
 } __attribute__ ((__packed__));
-
-
-char * byte2str_MAC(struct * MAC_address){
-    sprintf(MAC_address.strMAC,"%02x:%02x:%02x:%02x:%02x:%02x",MAC_address.byteMAC[0],MAC_address.byteMAC[1],MAC_address.byteMAC[2],MAC_address.byteMAC[3],MAC_address.byteMAC[4],MAC_address.byteMAC[5]);
-    return MAC_address.strMAC;
-}
 
 #endif // BEACON_H

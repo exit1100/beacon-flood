@@ -6,6 +6,11 @@
 #include "beacon.cpp"
 #define NULL 0x00
 
+void usage(){
+    printf("syntax: beacon-flood <interface> <ssidFile>\n");
+    printf("sample: beacon-flood wlan0 ssid-list.txt\n");
+}
+
 void monitor(char * dev){ // 랜카드 모니터 모드로 변경 함수
     char command[100];
     sprintf(command, "ifconfig %s down",dev);
@@ -16,13 +21,8 @@ void monitor(char * dev){ // 랜카드 모니터 모드로 변경 함수
     system(command);
 }
 
-void usage(){
-    printf("syntax: beacon-flood <interface> <ssidFile>\n");
-    printf("sample: beacon-flood wlan0 ssid-list.txt\n");
-}
-
-void sort_sMAC(){
-
+void * byte2str_MAC(uint8_t *byteMAC,char *strMAC){
+    sprintf(strMAC,"%02x:%02x:%02x:%02x:%02x:%02x",byteMAC[0],byteMAC[1],byteMAC[2],byteMAC[3], byteMAC[4],byteMAC[5]);
 }
 
 void set_sMAC(struct beacon_frame * fake_bframe){
@@ -61,13 +61,11 @@ int set_ssidName(FILE* pFile, struct beacon_frame * fake_bframe){
     return 0;
 }
 
-
 int main(int argc, char* argv[]) {
     if (argc != 3) {
         usage();
         return 0;
     }
-
     char * dev = argv[1];
     char * ssidFile = argv[2];
     char errbuf[PCAP_ERRBUF_SIZE];
@@ -99,11 +97,12 @@ int main(int argc, char* argv[]) {
             printf("Fail sendpacket\n");
             exit (-1);
         }
-
-        printf(" [BSSID]: %s | [SSID]: %s | send packet!\n",byte2str_MAC(&fake_bframe.beacon.bssid), fake_bframe.tag_ssid.ssid);
-
+        unsigned char strMAC[18] = {0,};
+        byte2str_MAC(fake_bframe.beacon.bssid, (char *)strMAC);
+        printf(" [BSSID]: %s | [SSID]: %s | send packet!\n", strMAC, fake_bframe.tag_ssid.ssid);
         usleep(100);
     }
+
     fclose(pFile);
     pcap_close(pcap);
 }
